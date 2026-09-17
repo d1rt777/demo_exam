@@ -1,4 +1,5 @@
 import sys
+from unicodedata import category
 
 from PySide6.QtWidgets import QApplication, QDialog, QMainWindow, QTableWidgetItem
 
@@ -18,6 +19,19 @@ def add_product():
     add_ui.setupUi(add_window)
 
     add_ui.buttonBox.accepted.connect(setProduct)
+
+    categories = dbconnect.getCategories()
+
+    add_ui.comboBox.clear()
+
+    for i in categories:
+        add_ui.comboBox.addItem(i['title'], i['id'])
+
+    suppliers = dbconnect.getSuppliers()
+    add_ui.comboBox_2.clear()
+
+    for j in suppliers:
+        add_ui.comboBox_2.addItem(j['name'], j['id'])
 
     add_window.show()
 
@@ -174,21 +188,27 @@ def open_product(row, column):
 
 def setProduct():
     title = add_ui.lineEdit.text()
-    category = add_ui.comboBox.currentText()
-    supplier = add_ui.comboBox_2.currentText()
+    category = add_ui.comboBox.currentData()
+    supplier = add_ui.comboBox_2.currentData()
     description = add_ui.textEdit.toPlainText()
     brand = add_ui.lineEdit_2.text()
     count = add_ui.spinBox.value()
     price = add_ui.spinBox_2.value()
 
-    print(title)
-    print(category)
-    print(supplier)
-    print(description)
-    print(brand)
-    print(count)
-    print(price)
+    conn = dbconnect.get_db_connect()
 
+    with conn.cursor() as cursor:
+        cursor.execute(f"INSERT INTO products(title, category_id, supplier_id, img_url, desription, brand, count, price) VALUES('{title}', '{category}','{supplier}', 'img/', '{description}', '{brand}', '{count}', '{price}' )")
+
+    conn.commit()    
+    cursor.close()
+
+    load_products()
+
+
+
+
+    
 
 
 if __name__ == "__main__":
